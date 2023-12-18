@@ -1,46 +1,59 @@
 package rca.devopsexam.controller;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
-import rca.devopsexam.v1.dtos.DoMathRequestDto;
-import rca.devopsexam.v1.payload.ApiResponse;
+import org.springframework.boot.web.server.LocalServerPort;
 
-import java.util.Objects;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class MathControllerTest {
+public class MathApplicationE2ETest {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+    @LocalServerPort
+    private int port;
+
+    private WebDriver driver;
+
+    @BeforeEach
+    public void setUp() {
+        // Set up WebDriver (assuming you have ChromeDriver installed)
+        System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
+        driver = new ChromeDriver();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        // Close the browser after each test
+        if (driver != null) {
+            driver.quit();
+        }
+    }
 
     @Test
-    public void doMathOperation_Success() {
+    public void testDoMathOperation_E2E() {
         // Given
-        DoMathRequestDto dto = new DoMathRequestDto(100, 20, "+");
+        driver.get("http://localhost:" + port + "/");  // Assuming your application is running at the root context
+
+        // Find input fields and submit button
+        WebElement operand1Input = driver.findElement(By.id("operand1"));
+        WebElement operand2Input = driver.findElement(By.id("operand2"));
+        WebElement operationInput = driver.findElement(By.id("operation"));
+        WebElement calculateButton = driver.findElement(By.id("calculateButton"));
 
         // When
-        ResponseEntity<ApiResponse> response = this.restTemplate.postForEntity("/api/v1/do_math", dto, ApiResponse.class);
+        operand1Input.sendKeys("2");
+        operand2Input.sendKeys("5");
+        operationInput.sendKeys("+");
+        calculateButton.click();
 
         // Then
-        assertEquals(200, response.getStatusCode().value());
-
-        // Ensure the API response contains a valid result
-        assertTrue(Objects.requireNonNull(response.getBody()).isSuccess());
-        assertNotNull(response.getBody().getData());
-
-        // Verify the calculated result matches the expected value
-        double expectedResult = 120; // Expected result for 100 + 20
-        double actualResult = Double.parseDouble(response.getBody().getData().toString());
-        assertEquals(expectedResult, actualResult, 0.001); // Specify a delta for comparison accuracy
+        WebElement resultElement = driver.findElement(By.id("result"));
+        String resultText = resultElement.getText();
+        assertEquals("7.0", resultText);
     }
 }
