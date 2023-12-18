@@ -12,7 +12,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class MathApplicationE2ETest {
+public class MathApplication-end-to-end-Test {
 
     @LocalServerPort
     private int port;
@@ -35,7 +35,7 @@ public class MathApplicationE2ETest {
     }
 
     @Test
-    public void testDoMathOperation_E2E() {
+    public void testDoMathOperation_end-to-end() {
         // Given
         driver.get("http://localhost:" + port + "/");  // Assuming your application is running at the root context
 
@@ -46,14 +46,14 @@ public class MathApplicationE2ETest {
         WebElement calculateButton = driver.findElement(By.id("calculateButton"));
 
         // When
-        operand1Input.sendKeys("2");
-        operand2Input.sendKeys("5");
+        operand1Input.sendKeys("9");
+        operand2Input.sendKeys("11");
         operationInput.sendKeys("+");
         calculateButton.click();
 
         // Then
         WebElement resultElement = driver.findElement(By.id("result"));
         String resultText = resultElement.getText();
-        assertEquals("7.0", resultText);
+        assertEquals("20.0", resultText);
     }
 }
